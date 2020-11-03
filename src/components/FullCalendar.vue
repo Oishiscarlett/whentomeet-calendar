@@ -99,8 +99,7 @@ export default {
             // display: 'background',
             // backgroundColor: 'red'
             backgroundColor: '#FF6633',
-            
-        title: '1'
+            title: '1'
           }
         ],
 
@@ -149,7 +148,8 @@ export default {
           backgroundColor: '#003399',
           borderColor: '#003399',
           title: '2'
-        })
+        }),
+        console.log(clickInfo.event.id);
       }else{
         clickInfo.event.remove();
         clickInfo.view.calendar.addEvent({
