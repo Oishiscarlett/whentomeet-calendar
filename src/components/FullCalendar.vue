@@ -40,6 +40,7 @@ export default {
         this.calendarOptions.slotMaxTime = newV.slotMaxTime
         this.calendarOptions.businessHours = newV.businessHours
         this.calendarOptions.hiddenDays = newV.hiddenDays
+        this.calendarOptions.validRange = newV.validRange
       }
     }
   },
@@ -95,6 +96,9 @@ export default {
         businessHours: this.Datas.calendarFormat.businessHours,
         // 隐藏一周当中的某天
         hiddenDays: this.Datas.calendarFormat.hiddenDays, 
+        // 日历开始与结束的时间
+        validRange: this.Datas.calendarFormat.validRange,
+        
 
         /***************************
         *     开发者根据页面功能
@@ -111,7 +115,7 @@ export default {
         select: this.handleDateSelect,
         eventClick: this.handleEventClick,
         eventsSet: this.handleEvents,
-        slotLaneContent: this.handleLaneContent,
+        slotLaneContent: this.handleLaneContent
       },
       // 存储选择的时间
       selectTime: [],
@@ -240,6 +244,16 @@ b { /* used for event dates/times */
   margin-right: 10px;
   color: #CC0000;
   font-weight: bold;
+}
+
+.fc-button-primary {
+    background-color: white!important;
+    border: 2px solid #DCDFE6!important;
+    color: #298FEC!important;
+}
+
+.fc-icon {
+    font-weight: bold!important;
 }
 </style>
 

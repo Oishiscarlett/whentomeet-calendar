@@ -41,6 +41,11 @@ export default {
           },
           // 隐藏一周当中的某天
           hiddenDays: [  ], // 隐藏周二
+          // 日历开始于结束的时间
+          validRange: {
+            start: '2020-10-11',
+            end: '2020-11-11'
+          },
         },
         /***************************
         *    与日历在各个页面
@@ -94,6 +99,10 @@ export default {
         endTime: '19:00', 
       }
       formatapi.hiddenDays = [1,4]
+      formatapi.validRange = {
+        start: '2020-11-11',
+        end: '2020-11-19'
+      }
     }
   }
 }
