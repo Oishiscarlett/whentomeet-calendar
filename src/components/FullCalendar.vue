@@ -26,6 +26,23 @@ export default {
   components: {
     FullCalendar // make the <FullCalendar> tag available
   },
+  props: {
+    Datas: Object
+  },
+  watch: {
+    // 监听日历格式的变化
+    'Datas.calendarFormat':{
+      deep: true,
+      handler(newV,oldV) {
+        this.calendarOptions.slotDuration = newV.slotDuration
+        this.calendarOptions.defaultTimedEventDuration = newV.defaultTimedEventDuration
+        this.calendarOptions.slotMinTime = newV.slotMinTime
+        this.calendarOptions.slotMaxTime = newV.slotMaxTime
+        this.calendarOptions.businessHours = newV.businessHours
+        this.calendarOptions.hiddenDays = newV.hiddenDays
+      }
+    }
+  },
   data: function() {
     return {
       calendarOptions: {
@@ -59,49 +76,34 @@ export default {
         contentHeight: "auto",
         // 不允许用户选择已经选择过的时间点
         selectOverlap: false,
+        // 是否显示周末
+        weekends: true,
 
         /***************************
         *     用户可调整的属性
         *  与调整日历格式相关功能有关
         ***************************/ 
-        // 是否显示周末
-        weekends: true,
         // 设置默认显示的时间间隔
-        slotDuration: '01:00', // 1 hours
+        slotDuration: this.Datas.calendarFormat.slotDuration, 
         // 选择的时间的默认间隔（应与slotDuration保持一致）
-        defaultTimedEventDuration: '01:00',
+        defaultTimedEventDuration: this.Datas.calendarFormat.defaultTimedEventDuration,
         // 日历显示的最早时间
-        slotMinTime: "06:00:00",
+        slotMinTime: this.Datas.calendarFormat.slotMinTime,
         // 日历显示的最晚时间
-        slotMaxTime: "22:00:00",
+        slotMaxTime: this.Datas.calendarFormat.slotMaxTime,
         // 强调日历中的某些时间段
-        businessHours: {
-            daysOfWeek: [ 1, 2, 3, 4, 5], // 0是星期天，1-6周一到周六
-            startTime: '08:00', // 高亮开始时间
-            endTime: '20:00', // 高亮结束时间
-        },
+        businessHours: this.Datas.calendarFormat.businessHours,
         // 隐藏一周当中的某天
-        hiddenDays: [  ], // 隐藏周二
+        hiddenDays: this.Datas.calendarFormat.hiddenDays, 
 
         /***************************
         *     开发者根据页面功能
         *      需要调整的属性
         ***************************/ 
         // 日历是否可选
-        selectable: true,
+        selectable: this.Datas.calendarFunction.selectable,
         // 背景时间：用于显示发起者未选择的时间
-        events: [
-          {
-            // 传入的数据应该是发起者未选择的时间
-            groupId: "hostChoose",
-            start: '2020-11-01T10:00:00',
-            end: '2020-11-01T16:00:00',
-            // display: 'background',
-            // backgroundColor: 'red'
-            backgroundColor: '#FF6633',
-            title: '1'
-          }
-        ],
+        events: this.Datas.calendarFunction.events,
 
         /***************************
         *         回调函数
@@ -110,17 +112,14 @@ export default {
         eventClick: this.handleEventClick,
         eventsSet: this.handleEvents,
         slotLaneContent: this.handleLaneContent,
-        // eventContent: this.handleEventContent
       },
       // 存储选择的时间
       selectTime: [],
+      // 标注当前页面
+      pages: this.Datas.calendarFunction.pages
     }
   },
   methods: {
-    // 是否显示周末
-    handleWeekendsToggle() {
-      this.calendarOptions.weekends = !this.calendarOptions.weekends // update a property
-    },
     // 创建已经选择的时间
     handleDateSelect(selectInfo) {
       let calendarApi = selectInfo.view.calendar
@@ -131,40 +130,47 @@ export default {
         start: selectInfo.start,
         groupId: 'hostSelect',
       })
+      // 更新父组件中的时间块
+      this.$emit('getTimeUnit',this.selectTime);
     },
     // 点击已选择的时间，删除已经选择的时间
     handleEventClick(clickInfo) {
       // 如果是创建事件页面,点击就是取消选择
-      // clickInfo.event.remove();
-
-      // 如果是填写事件页面
-      // 先判断当前时间是 inviteeSelect 或者 hostSelect
-      if(clickInfo.event.groupId === 'hostSelect'){
+      if (this.pages === 'create') {
         clickInfo.event.remove();
-        clickInfo.view.calendar.addEvent({
-          id: clickInfo.event.id,
-          start: clickInfo.event.start,
-          groupId: 'inviteeSelect',
-          backgroundColor: '#003399',
-          borderColor: '#003399',
-          title: '2'
-        }),
-        console.log(clickInfo.event.id);
-      }else{
-        clickInfo.event.remove();
-        clickInfo.view.calendar.addEvent({
-          id: clickInfo.event.id,
-          start: clickInfo.event.start,
-          groupId: 'hostSelect',
-          backgroundColor: '#3788d8',
-          borderColor: '#3788d8',
-          title: '1'
-        })
+        this.$emit('getTimeUnit',this.selectTime);
+      }else if(this.pages === 'select'){
+        // 如果是填写事件页面
+        // 先判断当前时间是 inviteeSelect 或者 hostSelect
+        if(clickInfo.event.groupId === 'hostSelect'){
+          clickInfo.event.remove();
+          clickInfo.view.calendar.addEvent({
+            id: clickInfo.event.id,
+            start: clickInfo.event.start,
+            groupId: 'inviteeSelect',
+            backgroundColor: '#003399',
+            borderColor: '#003399',
+            title: '2'
+          }),
+          // 更新父组件中的时间块
+          this.$emit('getTimeUnit',this.selectTime);
+        }else{
+          clickInfo.event.remove();
+          clickInfo.view.calendar.addEvent({
+            id: clickInfo.event.id,
+            start: clickInfo.event.start,
+            groupId: 'hostSelect',
+            backgroundColor: '#3788d8',
+            borderColor: '#3788d8',
+            title: '1'
+          })
+          // 更新父组件中的时间块
+          this.$emit('getTimeUnit',this.selectTime);
+        }
+      }else if(this.pages === 'result' ){
+        // 若是结果页面，返回点击时间的id，根据id查找数据，渲染
+        this.$emit('getTimeUnitId', clickInfo.event.id);
       }
-
-
-      // 若是结果页面，返回点击时间的id，根据id查找数据，渲染
-      // return clickInfo.event.id;
     },
     // 更新存储的已经选择的时间
     handleEvents(events) {
@@ -182,23 +188,8 @@ export default {
         arrayOfDomNodes.push(timeEl);
       }
       return { domNodes: arrayOfDomNodes };
-    },
-    // 用于结果页面展示事件缺席人数
-    // handleEventContent(arg){
-    //   let timeEl = document.createElement('b');
-    //   let absentEl = document.createElement('span');
-
-    //   timeEl.innerHTML = arg.event.start.toString().slice(16,21);
-
-    //   absentEl.innerHTML = '3';
-
-    //   let arrayOfDomNodes = [];
-    //   arrayOfDomNodes.push(timeEl);
-    //   arrayOfDomNodes.push(absentEl);
-      
-    //   return { domNodes: arrayOfDomNodes }
-    // }
-  }
+    }
+  },
 }
 </script>
 
@@ -252,7 +243,7 @@ b { /* used for event dates/times */
 }
 </style>
 
-TODO: 
-1.与会者选择的时间颜色的 选定 渲染
-2.结果页面 最佳时间和推荐时间 颜色的选定
-3.结果页面 不能参与人数的渲染 颜色
+TODO:
+问题记录：
+1. 是否显示周末；暂时无法实现由客户调整（不知道为什么可能因为改动了原始组件，
+                                      导致组件切换视图时候，产生问题）
